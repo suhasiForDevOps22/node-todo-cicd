@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+    
+    stages{
+        stage("Code"){
+            steps{
+                git url : 'https://github.com/suhasiForDevOps22/node-todo-cicd' , branch : 'master'
+            }
+            
+        }
+        stage("Build"){
+            steps{
+                sh "docker build . -t node-app-test-new"
+            }
+            
+        }
+        stage("Push to Repository"){
+            steps{
+                    withCredentials([usernamePassword(credentialsId:"dockerHub",passwordVariable:"dockerHubPass",usernameVariable:"dockerHubUser")]){
+                    sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPass}"
+                    sh "docker tag node-app-test-new ${env.dockerHubUser}/node-app-test-new:latest"
+                    sh "docker push ${env.dockerHubUser}/node-app-test-new:latest"
+                    
+                  
+                }
+            }
+            
+        }
+        stage("Deploy"){
+            steps{
+                echo "AWS EC2 pe docker compose ne deploy kar diya hai"
+                sh "docker-compose down"
+                sh "docker-compose up -d"
+            }
+            
+        }
+    }
+}
